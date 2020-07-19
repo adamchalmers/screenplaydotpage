@@ -1,4 +1,4 @@
-module Example exposing (unitTest)
+module Tests exposing (unitTest)
 
 import Expect exposing (Expectation)
 import Main exposing (..)
@@ -17,5 +17,9 @@ unitTest =
         , test "string without newline" <|
             \() ->
                 ensureTrailingNewline "adam"
+                    |> Expect.equal "adam\n"
+        , test "string with too many newlines" <|
+            \() ->
+                ensureTrailingNewline "adam\n\n\n"
                     |> Expect.equal "adam\n"
         ]

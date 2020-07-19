@@ -1,14 +1,22 @@
 port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, update, view)
 
+-- import Html exposing (Html, button, div, h1, header, span, text, textarea)
+-- import Html.Attributes exposing (class, cols, rows, value)
+-- import Html.Events exposing (onClick, onInput)
+
 import Browser
-import Html exposing (Html, button, div, h1, header, span, text, textarea)
-import Html.Attributes exposing (class, cols, rows, value)
-import Html.Events exposing (onClick, onInput)
+import Element exposing (Element, column, el, fill, fillPortion, height, html, rgb255, row, scrollbarY, text, width)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
+import Element.Input as Input
+import Element.Region as Region
 import Html.Parser
 import Html.Parser.Util exposing (toVirtualDom)
 import Http exposing (Error(..))
+import List as L
 import Parser exposing (deadEndsToString)
-import String exposing (endsWith)
+import String exposing (endsWith, trim)
 
 
 
@@ -36,6 +44,7 @@ type alias Model =
     , renderedScreenplay : String
     }
 
+
 type alias Flags =
     { startingText : String
     }
@@ -50,7 +59,6 @@ init flags =
       }
     , makeRenderRequest flags.startingText
     )
-
 
 
 
@@ -85,11 +93,7 @@ makeRenderRequest raw =
 
 ensureTrailingNewline : String -> String
 ensureTrailingNewline s =
-    if endsWith "\n" s then
-        s
-
-    else
-        s ++ "\n"
+    trim s ++ "\n"
 
 
 
@@ -98,30 +102,55 @@ ensureTrailingNewline s =
 -- ---------------------------
 
 
-view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ header []
-            [ h1 [] [ text "Screenplay editor" ]
-            ]
-        , div [ class "pure-g" ]
-            [ button
-                [ class "pure-button pure-button-primary"
-                , onClick Render
+    Element.layout [height fill, width fill] <|
+        column [ height <| fillPortion 1, width fill ]
+            [ Element.el
+                [ Font.size 42
                 ]
-                [ text "render" ]
+                (Element.text "Screenplay Editor")
+            , row [ height <| fillPortion 10, width fill ]
+                [ editPanel model
+                , viewPanel model
+                ]
             ]
-        , div [ class "pure-u-1-3" ]
-            [ textarea [ value model.rawScreenplay, onInput ChangeScreenplay, rows 40, cols 20 ] [] ]
-        , div [ class "pure-u-1-3" ] [ div [] (valueFor model.renderedScreenplay) ]
+
+
+editPanel : Model -> Element Msg
+editPanel model =
+    column [ height fill, width <| fillPortion 1 ]
+        [ column
+            [ Background.color <| rgb255 92 99 118
+            , scrollbarY
+            ]
+            [ Input.multiline []
+                { onChange = ChangeScreenplay
+                , text = model.rawScreenplay
+                , placeholder = Nothing
+                , label = Input.labelHidden "Raw-text screenplay input, in fountain markup"
+                , spellcheck = False
+                }
+            ]
         ]
 
 
-valueFor : String -> List (Html Msg)
+viewPanel : Model -> Element Msg
+viewPanel model =
+    column [ height fill, width <| fillPortion 1 ]
+        [ column
+            [ width <| fillPortion 1
+            , scrollbarY
+            , Background.color <| rgb255 92 99 118
+            ]
+            [ column [ Background.color <| rgb255 255 255 255 ] (valueFor model.renderedScreenplay) ]
+        ]
+
+
+valueFor : String -> List (Element Msg)
 valueFor renderedScreenplay =
     case Html.Parser.run renderedScreenplay of
-        Ok html ->
-            toVirtualDom html
+        Ok htmlScreenplay ->
+            toVirtualDom htmlScreenplay |> L.map html
 
         Err errs ->
             [ text <| deadEndsToString errs ]
