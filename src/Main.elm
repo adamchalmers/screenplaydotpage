@@ -1,11 +1,14 @@
-port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
+port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, update, view)
 
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, h1, header, span, text, textarea)
+import Html.Attributes exposing (class, cols, rows, value)
+import Html.Events exposing (onClick, onInput)
+import Html.Parser
+import Html.Parser.Util exposing (toVirtualDom)
 import Http exposing (Error(..))
-import Json.Decode as Decode
+import Parser exposing (deadEndsToString)
+import String exposing (endsWith)
 
 
 
@@ -14,7 +17,10 @@ import Json.Decode as Decode
 -- ---------------------------
 
 
-port toJs : String -> Cmd msg
+port renderRequest : String -> Cmd msg
+
+
+port renderResponse : (String -> msg) -> Sub msg
 
 
 
@@ -24,14 +30,27 @@ port toJs : String -> Cmd msg
 
 
 type alias Model =
-    { counter : Int
-    , serverMessage : String
+    { serverMessage : String
+    , rawScreenplay : String
+    , render : String
+    , renderedScreenplay : String
+    }
+
+type alias Flags =
+    { startingText : String
     }
 
 
-init : Int -> ( Model, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { counter = flags, serverMessage = "" }, Cmd.none )
+    ( { serverMessage = ""
+      , rawScreenplay = flags.startingText
+      , render = ""
+      , renderedScreenplay = ""
+      }
+    , makeRenderRequest flags.startingText
+    )
+
 
 
 
@@ -41,66 +60,36 @@ init flags =
 
 
 type Msg
-    = Inc
-    | Set Int
-    | TestServer
-    | OnServerResponse (Result Http.Error String)
+    = ChangeScreenplay String
+    | Render
+    | RenderComplete String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
-        Inc ->
-            ( add1 model, toJs "Hello Js" )
+        ChangeScreenplay raw ->
+            ( { model | rawScreenplay = raw }, makeRenderRequest raw )
 
-        Set m ->
-            ( { model | counter = m }, toJs "Hello Js" )
+        Render ->
+            ( model, makeRenderRequest model.rawScreenplay )
 
-        TestServer ->
-            let
-                expect =
-                    Http.expectJson OnServerResponse (Decode.field "result" Decode.string)
-            in
-            ( model
-            , Http.get { url = "/test", expect = expect }
-            )
-
-        OnServerResponse res ->
-            case res of
-                Ok r ->
-                    ( { model | serverMessage = r }, Cmd.none )
-
-                Err err ->
-                    ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
+        RenderComplete render ->
+            ( { model | renderedScreenplay = render }, Cmd.none )
 
 
-httpErrorToString : Http.Error -> String
-httpErrorToString err =
-    case err of
-        BadUrl url ->
-            "BadUrl: " ++ url
-
-        Timeout ->
-            "Timeout"
-
-        NetworkError ->
-            "NetworkError"
-
-        BadStatus _ ->
-            "BadStatus"
-
-        BadBody s ->
-            "BadBody: " ++ s
+makeRenderRequest : String -> Cmd Msg
+makeRenderRequest raw =
+    renderRequest (ensureTrailingNewline raw)
 
 
-{-| increments the counter
+ensureTrailingNewline : String -> String
+ensureTrailingNewline s =
+    if endsWith "\n" s then
+        s
 
-    add1 5 --> 6
-
--}
-add1 : Model -> Model
-add1 model =
-    { model | counter = model.counter + 1 }
+    else
+        s ++ "\n"
 
 
 
@@ -113,36 +102,44 @@ view : Model -> Html Msg
 view model =
     div [ class "container" ]
         [ header []
-            [ -- img [ src "/images/logo.png" ] []
-              span [ class "logo" ] []
-            , h1 [] [ text "Elm 0.19.1 Webpack Starter, with hot-reloading" ]
+            [ h1 [] [ text "Screenplay editor" ]
             ]
-        , p [] [ text "Click on the button below to increment the state." ]
         , div [ class "pure-g" ]
-            [ div [ class "pure-u-1-3" ]
-                [ button
-                    [ class "pure-button pure-button-primary"
-                    , onClick Inc
-                    ]
-                    [ text "+ 1" ]
-                , text <| String.fromInt model.counter
+            [ button
+                [ class "pure-button pure-button-primary"
+                , onClick Render
                 ]
-            , div [ class "pure-u-1-3" ] []
-            , div [ class "pure-u-1-3" ]
-                [ button
-                    [ class "pure-button pure-button-primary"
-                    , onClick TestServer
-                    ]
-                    [ text "ping dev server" ]
-                , text model.serverMessage
-                ]
+                [ text "render" ]
             ]
-        , p [] [ text "Then make a change to the source code and see how the state is retained after you recompile." ]
-        , p []
-            [ text "And now don't forget to add a star to the Github repo "
-            , a [ href "https://github.com/simonh1000/elm-webpack-starter" ] [ text "elm-webpack-starter" ]
-            ]
+        , div [ class "pure-u-1-3" ]
+            [ textarea [ value model.rawScreenplay, onInput ChangeScreenplay, rows 40, cols 20 ] [] ]
+        , div [ class "pure-u-1-3" ] [ div [] (valueFor model.renderedScreenplay) ]
         ]
+
+
+valueFor : String -> List (Html Msg)
+valueFor renderedScreenplay =
+    case Html.Parser.run renderedScreenplay of
+        Ok html ->
+            toVirtualDom html
+
+        Err errs ->
+            [ text <| deadEndsToString errs ]
+
+
+
+-- ---------------------------
+-- SUBSCRIPTIONS
+-- ---------------------------
+-- Subscribe to the `messageReceiver` port to hear about messages coming in
+-- from JS. Check out the index.html file to see how this is hooked up to a
+-- WebSocket.
+--
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    renderResponse RenderComplete
 
 
 
@@ -151,7 +148,7 @@ view model =
 -- ---------------------------
 
 
-main : Program Int Model Msg
+main : Program Flags Model Msg
 main =
     Browser.document
         { init = init
@@ -161,5 +158,5 @@ main =
                 { title = "Elm 0.19 starter"
                 , body = [ view m ]
                 }
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
