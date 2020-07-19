@@ -19,7 +19,7 @@ Author:
 
 INT. MESS
 
-The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table. The cat eats from a dish on the table. The cat eats from a dish on the table.
+The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.
 
 KANE
 First thing I'm going to do when we get back is eat some decent food.

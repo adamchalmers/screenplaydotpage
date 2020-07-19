@@ -5,12 +5,13 @@ port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, up
 -- import Html.Events exposing (onClick, onInput)
 
 import Browser
-import Element exposing (Element, alignBottom, alignRight, column, el, fill, fillPortion, height, html, layout, mouseOver, none, padding, paddingXY, paragraph, rgb255, row, scrollbarY, scrollbars, spacingXY, text, width, wrappedRow)
+import Element exposing (Element, alignBottom, alignRight, column, el, fill, fillPortion, height, html, htmlAttribute, layout, mouseOver, none, padding, paddingXY, paragraph, rgb255, row, scrollbarY, scrollbars, spacingXY, text, width, wrappedRow)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Html.Attributes exposing (id)
 import Html.Parser
 import Html.Parser.Util exposing (toVirtualDom)
 import Http exposing (Error(..))
@@ -136,7 +137,6 @@ writePanel model =
     column
         [ height fill
         , width fill
-        , paddingXY 0 10
         , scrollbars
         , Background.color <| rgb255 92 99 118
         ]
@@ -147,7 +147,6 @@ writePanel model =
 readPanel : Model -> Element Msg
 readPanel model =
     let
-
         -- Wrap the lines so that they can't be wider than the read panel itself.
         renderedElements =
             L.map (\line -> paragraph [] [ line ]) <|
@@ -162,6 +161,7 @@ readPanel model =
             , spacingXY 0 20
             , scrollbarY
             , Font.family [ Font.monospace ]
+            , htmlAttribute (id "rendered-screenplay")
             ]
             renderedElements
         ]
@@ -205,7 +205,7 @@ main =
         , update = update
         , view =
             \m ->
-                { title = "Elm 0.19 starter"
+                { title = "Write a screenplay"
                 , body = [ view m ]
                 }
         , subscriptions = subscriptions
