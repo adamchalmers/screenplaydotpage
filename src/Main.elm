@@ -5,7 +5,7 @@ port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, up
 -- import Html.Events exposing (onClick, onInput)
 
 import Browser
-import Element exposing (layout, paddingXY,mouseOver, alignBottom, scrollbars, none, paragraph, spacingXY, alignRight, padding, Element, column, el, fill, fillPortion, height, html, rgb255, row, scrollbarY, text, width)
+import Element exposing (Element, alignBottom, alignRight, column, el, fill, fillPortion, height, html, layout, mouseOver, none, padding, paddingXY, paragraph, rgb255, row, scrollbarY, scrollbars, spacingXY, text, width, wrappedRow)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -101,18 +101,30 @@ ensureTrailingNewline s =
 -- VIEW
 -- ---------------------------
 
+
 view model =
     layout [ height fill ] <|
-        row [ height fill, width fill ]
-            [ writePanel model
-            , readPanel model
+        column [ height fill, width fill ]
+            [ row
+                [ Background.color <| rgb255 30 30 30
+                , Font.color <| rgb255 200 200 200
+                , width fill
+                , Font.size 52
+                , padding 10
+                ]
+                [ text "Write a screenplay" ]
+            , row [ scrollbars ]
+                [ writePanel model
+                , readPanel model
+                ]
             ]
 
 
 writePanel : Model -> Element Msg
 writePanel model =
     let
-        editor = [ Input.multiline []
+        editor =
+            [ Input.multiline []
                 { onChange = ChangeScreenplay
                 , text = model.rawScreenplay
                 , placeholder = Nothing
@@ -123,7 +135,7 @@ writePanel model =
     in
     column
         [ height fill
-        , width <| fillPortion 1
+        , width fill
         , paddingXY 0 10
         , scrollbars
         , Background.color <| rgb255 92 99 118
@@ -135,41 +147,23 @@ writePanel model =
 readPanel : Model -> Element Msg
 readPanel model =
     let
-        header =
-            row
-                [ width fill
-                , paddingXY 20 5
-                , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
-                , Border.color <| rgb255 200 200 200
-                ]
-                [ el [] <| text "Rendered"
-                , Input.button
-                    [ padding 5
-                    , alignRight
-                    , Border.width 1
-                    , Border.rounded 3
-                    , Border.color <| rgb255 200 200 200
-                    ]
-                    { onPress = Nothing
-                    , label = text "Search"
-                    }
-                ]
 
-        messageEntry message =
-            column [ width fill, spacingXY 0 5 ]
-                [ row [ spacingXY 10 0 ]
-                    [ el [ Font.bold ] <| text message.author, text message.time ]
-                , paragraph [] [ text message.text ]
-                ]
-
-        messagePanel =
-            column [ padding 10, spacingXY 0 20, scrollbarY ] <|
-                (valueFor model.renderedScreenplay)
-
+        -- Wrap the lines so that they can't be wider than the read panel itself.
+        renderedElements =
+            L.map (\line -> paragraph [] [ line ]) <|
+                valueFor model.renderedScreenplay
     in
-    column [ height fill, width <| fillPortion 1 ]
-        [ header
-        , messagePanel
+    column
+        [ height fill
+        , width fill
+        ]
+        [ column
+            [ padding 10
+            , spacingXY 0 20
+            , scrollbarY
+            , Font.family [ Font.monospace ]
+            ]
+            renderedElements
         ]
 
 
