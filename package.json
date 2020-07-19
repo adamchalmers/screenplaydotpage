@@ -1,13 +1,13 @@
 {
-    "author": "Simon Hampton",
-    "name": "elm-webpack-starter",
-    "version": "3.10.0",
-    "description": "Elm 0.19 starter with Webpack 4 hot-reloading",
+    "author": "Adam Chalmers",
+    "name": "screenplay-dot-page",
+    "version": "1.0.0",
+    "description": "Elm app for rendering screenplays using Fountain",
     "main": "index.js",
     "files": [
-      "fountain_bg.wasm",
-      "fountain.js",
-      "fountain.d.ts"
+        "fountain_bg.wasm",
+        "fountain.js",
+        "fountain.d.ts"
     ],
     "module": "fountain.js",
     "types": "fountain.d.ts",
@@ -21,7 +21,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/simonh1000/elm-webpack-starter.git"
+        "url": "git+https://github.com/adamchalmers/screenplaydotpage.git"
     },
     "license": "MIT",
     "devDependencies": {
@@ -40,6 +40,7 @@
         "file-loader": "^6.0.0",
         "google-closure-compiler": "^20200406.0.0",
         "html-webpack-plugin": "^4.2.0",
+        "jspdf": "1.5.3",
         "mini-css-extract-plugin": "^0.9.0",
         "node-sass": "^4.14.1",
         "optimize-css-assets-webpack-plugin": "^5.0.3",

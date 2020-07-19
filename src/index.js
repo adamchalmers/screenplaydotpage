@@ -1,14 +1,22 @@
 'use strict';
 
 require("./styles.scss");
-const js = import("./fountain.js");
-js.then(js => {
+import * as jsPDF from 'jspdf';
+import("./fountain.js").then(fountain_wasm => {
     const { Elm } = require('./Main');
     var app = Elm.Main.init({ flags: { startingText } });
 
     app.ports.renderRequest.subscribe(rawScreenplay => {
-        const renderedHtml = js.parse(rawScreenplay);
+        const renderedHtml = fountain_wasm.parse(rawScreenplay);
         app.ports.renderResponse.send(renderedHtml);
+    })
+    app.ports.printScreenplay.subscribe(renderedHtml => {
+        console.log("Printing");
+        const doc = new jsPDF();
+        doc.fromHTML(document.getElementById('rendered-screenplay'), 15, 15, {
+            'width': 100
+        });
+        doc.save('screenplay.pdf');
     })
 });
 

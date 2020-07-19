@@ -32,6 +32,9 @@ port renderRequest : String -> Cmd msg
 port renderResponse : (String -> msg) -> Sub msg
 
 
+port printScreenplay : String -> Cmd msg
+
+
 
 -- ---------------------------
 -- MODEL
@@ -72,6 +75,7 @@ type Msg
     = ChangeScreenplay String
     | Render
     | RenderComplete String
+    | Print
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,6 +89,9 @@ update message model =
 
         RenderComplete render ->
             ( { model | renderedScreenplay = render }, Cmd.none )
+
+        Print ->
+            ( model, printScreenplay model.renderedScreenplay )
 
 
 makeRenderRequest : String -> Cmd Msg
@@ -103,22 +110,59 @@ ensureTrailingNewline s =
 -- ---------------------------
 
 
+green =
+    Element.rgb255 293 163 153
+
+
+blue =
+    Element.rgb255 66 133 140
+
+
+purple =
+    Element.rgb255 179 141 151
+
+
+lightGrey =
+    Element.rgb255 200 200 200
+
+
+darkGrey =
+    rgb255 30 30 30
+
+
 view model =
     layout [ height fill ] <|
         column [ height fill, width fill ]
-            [ row
-                [ Background.color <| rgb255 30 30 30
-                , Font.color <| rgb255 200 200 200
-                , width fill
-                , Font.size 52
-                , padding 10
-                ]
-                [ text "Write a screenplay" ]
+            [ header
             , row [ scrollbars ]
                 [ writePanel model
                 , readPanel model
                 ]
             ]
+
+
+header : Element Msg
+header =
+    row
+        [ Background.color darkGrey
+        , Font.color lightGrey
+        , width fill
+        , paddingXY 20 5
+        , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+        , Border.color lightGrey
+        ]
+        [ el [ Font.size 52 ] <| text "Write a screenplay"
+        , Input.button
+            [ padding 5
+            , alignRight
+            , Border.width 1
+            , Border.rounded 3
+            , Border.color lightGrey
+            ]
+            { onPress = Just Print
+            , label = text "Print"
+            }
+        ]
 
 
 writePanel : Model -> Element Msg
