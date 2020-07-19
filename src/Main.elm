@@ -5,7 +5,7 @@ port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, up
 -- import Html.Events exposing (onClick, onInput)
 
 import Browser
-import Element exposing (Element, column, el, fill, fillPortion, height, html, rgb255, row, scrollbarY, text, width)
+import Element exposing (layout, paddingXY,mouseOver, alignBottom, scrollbars, none, paragraph, spacingXY, alignRight, padding, Element, column, el, fill, fillPortion, height, html, rgb255, row, scrollbarY, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -101,29 +101,18 @@ ensureTrailingNewline s =
 -- VIEW
 -- ---------------------------
 
-
 view model =
-    Element.layout [height fill, width fill] <|
-        column [ height <| fillPortion 1, width fill ]
-            [ Element.el
-                [ Font.size 42
-                ]
-                (Element.text "Screenplay Editor")
-            , row [ height <| fillPortion 10, width fill ]
-                [ editPanel model
-                , viewPanel model
-                ]
+    layout [ height fill ] <|
+        row [ height fill, width fill ]
+            [ writePanel model
+            , readPanel model
             ]
 
 
-editPanel : Model -> Element Msg
-editPanel model =
-    column [ height fill, width <| fillPortion 1 ]
-        [ column
-            [ Background.color <| rgb255 92 99 118
-            , scrollbarY
-            ]
-            [ Input.multiline []
+writePanel : Model -> Element Msg
+writePanel model =
+    let
+        editor = [ Input.multiline []
                 { onChange = ChangeScreenplay
                 , text = model.rawScreenplay
                 , placeholder = Nothing
@@ -131,18 +120,56 @@ editPanel model =
                 , spellcheck = False
                 }
             ]
+    in
+    column
+        [ height fill
+        , width <| fillPortion 1
+        , paddingXY 0 10
+        , scrollbars
+        , Background.color <| rgb255 92 99 118
         ]
+    <|
+        editor
 
 
-viewPanel : Model -> Element Msg
-viewPanel model =
+readPanel : Model -> Element Msg
+readPanel model =
+    let
+        header =
+            row
+                [ width fill
+                , paddingXY 20 5
+                , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+                , Border.color <| rgb255 200 200 200
+                ]
+                [ el [] <| text "Rendered"
+                , Input.button
+                    [ padding 5
+                    , alignRight
+                    , Border.width 1
+                    , Border.rounded 3
+                    , Border.color <| rgb255 200 200 200
+                    ]
+                    { onPress = Nothing
+                    , label = text "Search"
+                    }
+                ]
+
+        messageEntry message =
+            column [ width fill, spacingXY 0 5 ]
+                [ row [ spacingXY 10 0 ]
+                    [ el [ Font.bold ] <| text message.author, text message.time ]
+                , paragraph [] [ text message.text ]
+                ]
+
+        messagePanel =
+            column [ padding 10, spacingXY 0 20, scrollbarY ] <|
+                (valueFor model.renderedScreenplay)
+
+    in
     column [ height fill, width <| fillPortion 1 ]
-        [ column
-            [ width <| fillPortion 1
-            , scrollbarY
-            , Background.color <| rgb255 92 99 118
-            ]
-            [ column [ Background.color <| rgb255 255 255 255 ] (valueFor model.renderedScreenplay) ]
+        [ header
+        , messagePanel
         ]
 
 
