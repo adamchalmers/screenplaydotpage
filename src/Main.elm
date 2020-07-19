@@ -147,7 +147,7 @@ header =
         [ Background.color darkGrey
         , Font.color lightGrey
         , width fill
-        , paddingXY 20 5
+        , padding 20
         , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
         , Border.color lightGrey
         ]
