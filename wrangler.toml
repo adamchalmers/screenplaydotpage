@@ -1,0 +1,9 @@
+name = "screenplaydotpage"
+type = "webpack"
+account_id = "17aed4d14e84bd4ae5a6a02e1369ac63"
+route = "screenplay.page/*"
+zone_id = "9f0c54f9012b8ab08e923f608a0fc7e8"
+
+[site]
+bucket = "./dist"
+entry-point = "workers-site"
