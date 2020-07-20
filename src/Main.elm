@@ -134,11 +134,20 @@ view model =
     layout [ height fill ] <|
         column [ height fill, width fill ]
             [ header
-            , row [ scrollbars ]
+            , row [ scrollbars, Font.size 16 ]
                 [ writePanel model
                 , readPanel model
                 ]
             ]
+
+
+buttonStyle =
+    [ padding 5
+    , alignRight
+    , Border.width 1
+    , Border.rounded 3
+    , Border.color lightGrey
+    ]
 
 
 header : Element Msg
@@ -152,13 +161,7 @@ header =
         , Border.color lightGrey
         ]
         [ el [ Font.size 52 ] <| text "Write a screenplay"
-        , Input.button
-            [ padding 5
-            , alignRight
-            , Border.width 1
-            , Border.rounded 3
-            , Border.color lightGrey
-            ]
+        , Input.button buttonStyle
             { onPress = Just Print
             , label = text "Print"
             }
