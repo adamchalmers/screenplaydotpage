@@ -1,7 +1,7 @@
 'use strict';
 
 require("./styles.scss");
-import * as jsPDF from 'jspdf';
+require("print-this");
 import("./fountain.js").then(fountain_wasm => {
     const { Elm } = require('./Main');
     var app = Elm.Main.init({ flags: { startingText } });
@@ -10,13 +10,10 @@ import("./fountain.js").then(fountain_wasm => {
         const renderedHtml = fountain_wasm.parse(rawScreenplay);
         app.ports.renderResponse.send(renderedHtml);
     })
-    app.ports.printScreenplay.subscribe(renderedHtml => {
-        console.log("Printing");
-        const doc = new jsPDF();
-        doc.fromHTML(document.getElementById('rendered-screenplay'), 15, 15, {
-            'width': 100
+    app.ports.printScreenplay.subscribe(() => {
+        $('#rendered-screenplay').printThis({
+            importStyle: true,
         });
-        doc.save('screenplay.pdf');
     })
 });
 

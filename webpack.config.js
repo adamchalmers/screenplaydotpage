@@ -36,6 +36,10 @@ var common = {
             template: "src/index.html",
             // inject details of output file at end of body
             inject: "body"
+        }),
+        new webpack.ProvidePlugin({
+            $: "jquery",
+            jQuery: "jquery"
         })
     ],
     resolve: {
@@ -121,7 +125,7 @@ if (MODE === "development") {
             // feel free to delete this section if you don't need anything like this
             before(app) {
                 // on port 3000
-                app.get("/test", function(req, res) {
+                app.get("/test", function (req, res) {
                     res.json({ result: "OK" });
                 });
             }

@@ -32,7 +32,7 @@ port renderRequest : String -> Cmd msg
 port renderResponse : (String -> msg) -> Sub msg
 
 
-port printScreenplay : String -> Cmd msg
+port printScreenplay : () -> Cmd msg
 
 
 
@@ -91,7 +91,7 @@ update message model =
             ( { model | renderedScreenplay = render }, Cmd.none )
 
         Print ->
-            ( model, printScreenplay model.renderedScreenplay )
+            ( model, printScreenplay () )
 
 
 makeRenderRequest : String -> Cmd Msg
